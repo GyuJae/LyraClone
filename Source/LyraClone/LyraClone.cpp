@@ -2,6 +2,7 @@
 
 #include "LyraClone.h"
 #include "Modules/ModuleManager.h"
+#include "GyuLogChannels.h"
 
 class FGyuGameModule : public FDefaultGameModuleImpl
 {
@@ -13,7 +14,7 @@ public:
 void FGyuGameModule::StartupModule()
 {
 	FDefaultGameModuleImpl::StartupModule();
-	UE_LOG(LogTemp, Warning, TEXT("StartupModule!!"));
+	UE_LOG(LogGyu, Warning, TEXT("StartupModule!!"));
 }
 
 void FGyuGameModule::ShutdownModule()
