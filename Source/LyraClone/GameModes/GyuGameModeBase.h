@@ -13,5 +13,12 @@ UCLASS()
 class LYRACLONE_API AGyuGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
+public:
+	AGyuGameModeBase();
+
+	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override; 
+
+protected: 
+	void HandleMatchAssignmentIfNotExpectingOne();
 };
