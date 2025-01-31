@@ -37,6 +37,8 @@ public:
 	// Tries to set the current experience, either a UI or gameplay one
 	void SetCurrentExperience(FPrimaryAssetId ExperienceId);
 
+	const UGyuExperienceDefinition* GetCurrentExperienceChecked() const;
+
 private:
 	void StartExperienceLoad();
 	void OnExperienceLoadComplete();

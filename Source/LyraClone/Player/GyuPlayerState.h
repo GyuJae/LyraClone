@@ -21,6 +21,12 @@ public:
 	//~AActor interface
 	virtual void PostInitializeComponents() override;
 
+	template <class T>
+	const T* GetPawnData() const { return Cast<T>(PawnData); }
+
+	void SetPawnData(const UGyuPawnData* InPawnData);
+
+
 private:
 	void OnExperienceLoaded(const UGyuExperienceDefinition* CurrentExperience);
 

@@ -8,6 +8,10 @@
 #include "LyraClone/Character/GyuCharacter.h"
 #include "GyuExperienceManagerComponent.h"
 #include "LyraClone/GyuLogChannels.h"
+#include "LyraClone/Character/GyuPawnData.h"
+#include "GyuExperienceDefinition.h"
+#include "LyraClone/System/GyuAssetManager.h"
+
 
 AGyuGameModeBase::AGyuGameModeBase()
 {
@@ -15,6 +19,41 @@ AGyuGameModeBase::AGyuGameModeBase()
 	PlayerControllerClass = AGyuPlayerController::StaticClass();
 	PlayerStateClass = AGyuPlayerState::StaticClass();
 	DefaultPawnClass = AGyuCharacter::StaticClass();
+}
+
+const UGyuPawnData* AGyuGameModeBase::GetPawnDataForController(const AController* InController) const
+{
+	// See if pawn data is already set on the player state
+	if (InController != nullptr)
+	{
+		if (const AGyuPlayerState* LyraPS = InController->GetPlayerState<AGyuPlayerState>())
+		{
+			if (const UGyuPawnData* PawnData = LyraPS->GetPawnData<UGyuPawnData>())
+			{
+				return PawnData;
+			}
+		}
+	}
+
+	// If not, fall back to the the default for the current experience
+	check(GameState);
+	UGyuExperienceManagerComponent* ExperienceComponent = GameState->FindComponentByClass<UGyuExperienceManagerComponent>();
+	check(ExperienceComponent);
+
+	if (ExperienceComponent->IsExperienceLoaded())
+	{
+		const UGyuExperienceDefinition* Experience = ExperienceComponent->GetCurrentExperienceChecked();
+		if (Experience->DefaultPawnData != nullptr)
+		{
+			return Experience->DefaultPawnData;
+		}
+
+		// Experience is loaded and there's still no pawn data, fall back to the default for now
+		return UGyuAssetManager::Get().GetDefaultPawnData();
+	}
+
+	// Experience not loaded yet, so there is no pawn data to be had
+	return nullptr;
 }
 
 void AGyuGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -32,6 +71,19 @@ void AGyuGameModeBase::InitGameState()
 	UGyuExperienceManagerComponent* ExperienceComponent = GameState->FindComponentByClass<UGyuExperienceManagerComponent>();
 	check(ExperienceComponent);
 	ExperienceComponent->CallOrRegister_OnExperienceLoaded(FGyuExperienceLoaded::FDelegate::CreateUObject(this, &ThisClass::OnExperienceLoaded));
+}
+
+UClass* AGyuGameModeBase::GetDefaultPawnClassForController_Implementation(AController* InController)
+{
+	if (const UGyuPawnData* PawnData = GetPawnDataForController(InController))
+	{
+		if (PawnData->PawnClass)
+		{
+			return PawnData->PawnClass;
+		}
+	}
+
+	return Super::GetDefaultPawnClassForController_Implementation(InController);
 }
 
 void AGyuGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
@@ -65,6 +117,20 @@ void AGyuGameModeBase::HandleMatchAssignmentIfNotExpectingOne()
 
 void AGyuGameModeBase::OnExperienceLoaded(const UGyuExperienceDefinition* CurrentExperience)
 {
+	// Spawn any players that are already attached
+	//@TODO: Here we're handling only *player* controllers, but in GetDefaultPawnClassForController_Implementation we skipped all controllers
+	// GetDefaultPawnClassForController_Implementation might only be getting called for players anyways
+	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	{
+		APlayerController* PC = Cast<APlayerController>(*Iterator);
+		if ((PC != nullptr) && (PC->GetPawn() == nullptr))
+		{
+			if (PlayerCanRestart(PC))
+			{
+				RestartPlayer(PC);
+			}
+		}
+	}
 }
 
 bool AGyuGameModeBase::IsExperienceLoaded() const

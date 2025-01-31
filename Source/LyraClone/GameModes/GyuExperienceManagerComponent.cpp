@@ -38,6 +38,13 @@ void UGyuExperienceManagerComponent::SetCurrentExperience(FPrimaryAssetId Experi
 	StartExperienceLoad();
 }
 
+const UGyuExperienceDefinition* UGyuExperienceManagerComponent::GetCurrentExperienceChecked() const
+{
+	check(LoadState == EGyuExperienceLoadState::Loaded);
+	check(CurrentExperience != nullptr);
+	return CurrentExperience;
+}
+
 void UGyuExperienceManagerComponent::StartExperienceLoad()
 {
 	check(CurrentExperience != nullptr);

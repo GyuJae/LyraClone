@@ -7,6 +7,7 @@
 #include "GyuGameModeBase.generated.h"
 
 class UGyuExperienceDefinition;
+class UGyuPawnData;
 
 /**
  * 
@@ -19,9 +20,12 @@ class LYRACLONE_API AGyuGameModeBase : public AGameModeBase
 public:
 	AGyuGameModeBase();
 
+	const UGyuPawnData* GetPawnDataForController(const AController* InController) const;
+
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override; 
 	virtual void InitGameState() override;
 
+	virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 	virtual APawn* SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform) override;
 

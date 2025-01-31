@@ -6,6 +6,8 @@
 #include "Engine/AssetManager.h"
 #include "GyuAssetManager.generated.h"
 
+class UGyuPawnData;
+
 /**
  * 
  */
@@ -29,9 +31,15 @@ public:
 	template<typename AssetType>
 	static TSubclassOf<AssetType> GetSubclass(const TSoftClassPtr<AssetType>& AssetPointer, bool bKeepInMemory = true);
 
+	const UGyuPawnData* GetDefaultPawnData() const;
+
 protected:
 	// Thread safe way of adding a loaded asset to keep in memory.
 	void AddLoadedAsset(const UObject* Asset);
+
+protected:
+	UPROPERTY()
+	TSoftObjectPtr<UGyuPawnData> DefaultPawnData;
 
 private:
 

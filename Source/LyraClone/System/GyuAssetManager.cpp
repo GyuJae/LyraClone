@@ -2,6 +2,7 @@
 
 #include "GyuAssetManager.h"
 #include "LyraClone/GyuLogChannels.h"
+#include "LyraClone/Character/GyuPawnData.h"
 
 UGyuAssetManager::UGyuAssetManager()
 {
@@ -48,6 +49,11 @@ UObject* UGyuAssetManager::SynchronousLoadAsset(const FSoftObjectPath& AssetPath
 	}
 
 	return nullptr;
+}
+
+const UGyuPawnData* UGyuAssetManager::GetDefaultPawnData() const
+{
+	return GetAsset(DefaultPawnData);
 }
 
 void UGyuAssetManager::AddLoadedAsset(const UObject* Asset)
