@@ -8,7 +8,7 @@
 
 class UGyuExperienceDefinition;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(EGyuExperienceLoaded, const UGyuExperienceDefinition* /*Experience*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FGyuExperienceLoaded, const UGyuExperienceDefinition* /*Experience*/);
 
 enum class EGyuExperienceLoadState
 {
@@ -26,12 +26,13 @@ class LYRACLONE_API UGyuExperienceManagerComponent : public UGameStateComponent
 {
 	GENERATED_BODY()
 
+public:
 	// Returns true if the experience is fully loaded
 	bool IsExperienceLoaded() const;
 
 	// Ensures the delegate is called once the experience has been loaded
 // If the experience has already loaded, calls the delegate immediately
-	void CallOrRegister_OnExperienceLoaded(EGyuExperienceLoaded::FDelegate&& Delegate);
+	void CallOrRegister_OnExperienceLoaded(FGyuExperienceLoaded::FDelegate&& Delegate);
 	
 private:
 	UPROPERTY()
@@ -40,5 +41,7 @@ private:
 	EGyuExperienceLoadState LoadState = EGyuExperienceLoadState::Unloaded;
 
 	/** Delegate called when the experience has finished loading */
-	EGyuExperienceLoaded OnExperienceLoaded;
+	FGyuExperienceLoaded OnExperienceLoaded;
+
+
 };

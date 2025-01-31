@@ -6,6 +6,9 @@
 #include "GameFramework/PlayerState.h"
 #include "GyuPlayerState.generated.h"
 
+class UGyuPawnData;
+class UGyuExperienceDefinition;
+
 /**
  * 
  */
@@ -13,5 +16,16 @@ UCLASS()
 class LYRACLONE_API AGyuPlayerState : public APlayerState
 {
 	GENERATED_BODY()
-	
+
+public:
+	//~AActor interface
+	virtual void PostInitializeComponents() override;
+
+private:
+	void OnExperienceLoaded(const UGyuExperienceDefinition* CurrentExperience);
+
+protected:
+
+	UPROPERTY()
+	TObjectPtr<const UGyuPawnData> PawnData;
 };

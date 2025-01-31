@@ -6,6 +6,8 @@
 #include "LyraClone/Player/GyuPlayerController.h"
 #include "LyraClone/Player/GyuPlayerState.h"
 #include "LyraClone/Character/GyuCharacter.h"
+#include "GyuExperienceManagerComponent.h"
+#include "LyraClone/GyuLogChannels.h"
 
 AGyuGameModeBase::AGyuGameModeBase()
 {
@@ -23,6 +25,42 @@ void AGyuGameModeBase::InitGame(const FString& MapName, const FString& Options, 
 	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::HandleMatchAssignmentIfNotExpectingOne);
 }
 
+void AGyuGameModeBase::InitGameState()
+{
+	Super::InitGameState();
+
+	UGyuExperienceManagerComponent* ExperienceComponent = GameState->FindComponentByClass<UGyuExperienceManagerComponent>();
+	check(ExperienceComponent);
+	ExperienceComponent->CallOrRegister_OnExperienceLoaded(FGyuExperienceLoaded::FDelegate::CreateUObject(this, &ThisClass::OnExperienceLoaded));
+}
+
+void AGyuGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	if (IsExperienceLoaded())
+	{
+		Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+	}
+}
+
+APawn* AGyuGameModeBase::SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform)
+{
+	UE_LOG(LogGyu, Warning, TEXT("SpawnDefaultPawnAtTransform_Implementation is called!"));
+	return Super::SpawnDefaultPawnAtTransform_Implementation(NewPlayer, SpawnTransform);
+}
+
 void AGyuGameModeBase::HandleMatchAssignmentIfNotExpectingOne()
 {
+}
+
+void AGyuGameModeBase::OnExperienceLoaded(const UGyuExperienceDefinition* CurrentExperience)
+{
+}
+
+bool AGyuGameModeBase::IsExperienceLoaded() const
+{
+	check(GameState);
+	UGyuExperienceManagerComponent* ExperienceComponent = GameState->FindComponentByClass<UGyuExperienceManagerComponent>();
+	check(ExperienceComponent);
+
+	return ExperienceComponent->IsExperienceLoaded();
 }

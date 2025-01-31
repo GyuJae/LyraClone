@@ -8,7 +8,7 @@ bool UGyuExperienceManagerComponent::IsExperienceLoaded() const
 	return (LoadState == EGyuExperienceLoadState::Loaded) && (CurrentExperience != nullptr);
 }
 
-void UGyuExperienceManagerComponent::CallOrRegister_OnExperienceLoaded(EGyuExperienceLoaded::FDelegate&& Delegate)
+void UGyuExperienceManagerComponent::CallOrRegister_OnExperienceLoaded(FGyuExperienceLoaded::FDelegate&& Delegate)
 {
 	if (IsExperienceLoaded())
 	{
