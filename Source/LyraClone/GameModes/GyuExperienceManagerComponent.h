@@ -33,6 +33,14 @@ public:
 	// Ensures the delegate is called once the experience has been loaded
 // If the experience has already loaded, calls the delegate immediately
 	void CallOrRegister_OnExperienceLoaded(FGyuExperienceLoaded::FDelegate&& Delegate);
+
+	// Tries to set the current experience, either a UI or gameplay one
+	void SetCurrentExperience(FPrimaryAssetId ExperienceId);
+
+private:
+	void StartExperienceLoad();
+	void OnExperienceLoadComplete();
+	void OnExperienceFullLoadCompleted();
 	
 private:
 	UPROPERTY()

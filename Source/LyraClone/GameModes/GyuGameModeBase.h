@@ -32,4 +32,6 @@ protected:
 	void OnExperienceLoaded(const UGyuExperienceDefinition* CurrentExperience);
 
 	bool IsExperienceLoaded() const;
+
+	void OnMatchAssignmentGiven(FPrimaryAssetId ExperienceId);
 };

@@ -50,6 +50,17 @@ APawn* AGyuGameModeBase::SpawnDefaultPawnAtTransform_Implementation(AController*
 
 void AGyuGameModeBase::HandleMatchAssignmentIfNotExpectingOne()
 {
+	FPrimaryAssetId ExperienceId;
+
+	UWorld* World = GetWorld();
+
+	if (!ExperienceId.IsValid())
+	{
+		ExperienceId = FPrimaryAssetId(FPrimaryAssetType("GyuExperienceDefinition"), FName("B_GyuDefaultExperience"));
+	}
+
+	OnMatchAssignmentGiven(ExperienceId);
+
 }
 
 void AGyuGameModeBase::OnExperienceLoaded(const UGyuExperienceDefinition* CurrentExperience)
@@ -63,4 +74,11 @@ bool AGyuGameModeBase::IsExperienceLoaded() const
 	check(ExperienceComponent);
 
 	return ExperienceComponent->IsExperienceLoaded();
+}
+
+void AGyuGameModeBase::OnMatchAssignmentGiven(FPrimaryAssetId ExperienceId)
+{
+	UGyuExperienceManagerComponent* ExperienceComponent = GameState->FindComponentByClass<UGyuExperienceManagerComponent>();
+	check(ExperienceComponent);
+	ExperienceComponent->SetCurrentExperience(ExperienceId);
 }
