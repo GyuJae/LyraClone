@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "GyuCharacter.generated.h"
 
+class UGyuPawnExtensionComponent;
+
 UCLASS()
 class LYRACLONE_API AGyuCharacter : public ACharacter
 {
@@ -26,4 +28,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gyu|Character", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UGyuPawnExtensionComponent> PawnExtComponent;
 };
