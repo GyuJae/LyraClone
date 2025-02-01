@@ -3,6 +3,7 @@
 #include "GyuAssetManager.h"
 #include "LyraClone/GyuLogChannels.h"
 #include "LyraClone/Character/GyuPawnData.h"
+#include "LyraClone/GyuGameplayTags.h"
 
 UGyuAssetManager::UGyuAssetManager()
 {
@@ -63,4 +64,10 @@ void UGyuAssetManager::AddLoadedAsset(const UObject* Asset)
 		FScopeLock LoadedAssetsLock(&LoadedAssetsCritical);
 		LoadedAssets.Add(Asset);
 	}
+}
+
+void UGyuAssetManager::StartInitialLoading()
+{
+	Super::StartInitialLoading();
+	FGyuGameplayTags::InitializeNativeTags();
 }

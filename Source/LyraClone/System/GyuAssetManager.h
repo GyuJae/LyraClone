@@ -37,6 +37,8 @@ protected:
 	// Thread safe way of adding a loaded asset to keep in memory.
 	void AddLoadedAsset(const UObject* Asset);
 
+	virtual void StartInitialLoading() override;
+
 protected:
 	UPROPERTY()
 	TSoftObjectPtr<UGyuPawnData> DefaultPawnData;
