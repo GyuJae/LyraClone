@@ -4,6 +4,8 @@
 #include "GyuPawnExtensionComponent.h"
 #include "LyraClone/GyuGameplayTags.h"
 #include "Components/GameFrameworkComponentManager.h"
+#include "LyraClone/GyuLogChannels.h"
+#include "GyuPawnData.h"
 
 const FName UGyuPawnExtensionComponent::NAME_ActorFeatureName("PawnExtension");
 
@@ -15,7 +17,52 @@ UGyuPawnExtensionComponent::UGyuPawnExtensionComponent(const FObjectInitializer&
 
 bool UGyuPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) const
 {
-	return IGameFrameworkInitStateInterface::CanChangeInitState(Manager, CurrentState, DesiredState);
+	check(Manager);
+
+	APawn* Pawn = GetPawn<APawn>();
+	const FGyuGameplayTags& InitTags = FGyuGameplayTags::Get();
+
+	if (!CurrentState.IsValid() && DesiredState == InitTags.InitState_Spawned)
+	{
+		// As long as we are on a valid pawn, we count as spawned
+		if (Pawn)
+		{
+			return true;
+		}
+	}
+	if (CurrentState == InitTags.InitState_Spawned && DesiredState == InitTags.InitState_DataAvailable)
+	{
+		// Pawn data is required.
+		if (!PawnData)
+		{
+			return false;
+		}
+
+		const bool bHasAuthority = Pawn->HasAuthority();
+		const bool bIsLocallyControlled = Pawn->IsLocallyControlled();
+
+		if (bHasAuthority || bIsLocallyControlled)
+		{
+			// Check for being possessed by a controller.
+			if (!GetController<AController>())
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+	else if (CurrentState == InitTags.InitState_DataAvailable && DesiredState == InitTags.InitState_DataInitialized)
+	{
+		// Transition to initialize if all features have their data available
+		return Manager->HaveAllFeaturesReachedInitState(Pawn, InitTags.InitState_DataAvailable);
+	}
+	else if (CurrentState == InitTags.InitState_DataInitialized && DesiredState == InitTags.InitState_GameplayReady)
+	{
+		return true;
+	}
+
+	return false;
 }
 
 void UGyuPawnExtensionComponent::HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState)
@@ -38,6 +85,28 @@ void UGyuPawnExtensionComponent::CheckDefaultInitialization()
 
 	// This will try to progress from spawned (which is only set in BeginPlay) through the data initialization stages until it gets to gameplay ready
 	ContinueInitStateChain(StateChain);
+}
+
+void UGyuPawnExtensionComponent::SetPawnData(const UGyuPawnData* InPawnData)
+{
+	check(InPawnData);
+
+	APawn* Pawn = GetPawnChecked<APawn>();
+
+	if (Pawn->GetLocalRole() != ROLE_Authority)
+	{
+		return;
+	}
+
+	if (PawnData)
+	{
+		UE_LOG(LogGyu, Error, TEXT("Trying to set PawnData [%s] on pawn [%s] that already has valid PawnData [%s]."), *GetNameSafe(InPawnData), *GetNameSafe(Pawn), *GetNameSafe(PawnData));
+		return;
+	}
+
+	PawnData = InPawnData;
+	Pawn->ForceNetUpdate();
+	CheckDefaultInitialization();
 }
 
 void UGyuPawnExtensionComponent::OnRegister()

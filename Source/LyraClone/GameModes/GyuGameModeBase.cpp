@@ -11,6 +11,7 @@
 #include "LyraClone/Character/GyuPawnData.h"
 #include "GyuExperienceDefinition.h"
 #include "LyraClone/System/GyuAssetManager.h"
+#include "LyraClone/Character/GyuPawnExtensionComponent.h"
 
 
 AGyuGameModeBase::AGyuGameModeBase()
@@ -96,8 +97,42 @@ void AGyuGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController*
 
 APawn* AGyuGameModeBase::SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform)
 {
-	UE_LOG(LogGyu, Warning, TEXT("SpawnDefaultPawnAtTransform_Implementation is called!"));
-	return Super::SpawnDefaultPawnAtTransform_Implementation(NewPlayer, SpawnTransform);
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Instigator = GetInstigator();
+	SpawnInfo.ObjectFlags |= RF_Transient;	// Never save the default player pawns into a map.
+	SpawnInfo.bDeferConstruction = true;
+
+	if (UClass* PawnClass = GetDefaultPawnClassForController(NewPlayer))
+	{
+		if (APawn* SpawnedPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnInfo))
+		{
+			if (UGyuPawnExtensionComponent* PawnExtComp = UGyuPawnExtensionComponent::FindPawnExtensionComponent(SpawnedPawn))
+			{
+				if (const UGyuPawnData* PawnData = GetPawnDataForController(NewPlayer))
+				{
+					PawnExtComp->SetPawnData(PawnData);
+				}
+				else
+				{
+					UE_LOG(LogGyu, Error, TEXT("Game mode was unable to set PawnData on the spawned pawn [%s]."), *GetNameSafe(SpawnedPawn));
+				}
+			}
+
+			SpawnedPawn->FinishSpawning(SpawnTransform);
+
+			return SpawnedPawn;
+		}
+		else
+		{
+			UE_LOG(LogGyu, Error, TEXT("Game mode was unable to spawn Pawn of class [%s] at [%s]."), *GetNameSafe(PawnClass), *SpawnTransform.ToHumanReadableString());
+		}
+	}
+	else
+	{
+		UE_LOG(LogGyu, Error, TEXT("Game mode was unable to spawn Pawn due to NULL pawn class."));
+	}
+
+	return nullptr;
 }
 
 void AGyuGameModeBase::HandleMatchAssignmentIfNotExpectingOne()
